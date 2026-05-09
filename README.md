@@ -8,6 +8,7 @@ Implemented modules:
 
 - Module 1: Project setup and authentication
 - Module 2: Market evidence package and cache skeleton
+- Module 3: Rate limiter
 
 The market data flow currently uses mock data for `AAPL`. Live market API integrations are planned for later modules.
 
@@ -109,6 +110,18 @@ Market evidence:
 - `GET /api/v1/market/evidence/AAPL`
 
 The market evidence endpoint requires a bearer token from the login or register response.
+
+## Rate Limiting
+
+Module 3 applies debate-style quotas to the protected market evidence endpoint. This keeps the limiter in the request path before the LLM debate engine is implemented.
+
+Current quotas:
+
+- Newbie and intermediate users: 5 requests per hour, 20 requests per day
+- Pro users: 30 requests per hour, no daily cap
+- Admin users: unlimited
+
+Rate limit responses include `X-RateLimit-*` headers. Limit hits are logged to PostgreSQL in the `rate_limit_events` table when PostgreSQL is configured.
 
 ## Notes
 

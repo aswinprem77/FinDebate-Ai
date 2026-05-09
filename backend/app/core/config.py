@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     database_url: str | None = None
     redis_url: str | None = None
     evidence_cache_ttl_seconds: int = 15 * 60
+    free_debates_per_hour: int = 5
+    free_debates_per_day: int = 20
+    pro_debates_per_hour: int = 30
+    pro_warning_threshold_per_hour: int = 25
     cors_origins_raw: str = Field(
         default="http://localhost:5173,http://127.0.0.1:5173",
         validation_alias="CORS_ORIGINS",
