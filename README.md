@@ -10,8 +10,9 @@ Implemented modules:
 - Module 2: Market evidence package and cache skeleton
 - Module 3: Rate limiter
 - Module 4: Three-model debate engine using mocked analyst models
+- Module 5: Judge model and final verdict engine
 
-The market data and debate flows currently use mock data for `AAPL`. Live market API and LLM provider integrations are planned for later modules.
+The market data, debate, and judge flows currently use mock data for `AAPL`. Live market API and LLM provider integrations are planned for later modules.
 
 ## Tech Stack
 
@@ -114,6 +115,7 @@ Market evidence:
 Debate:
 
 - `POST /api/v1/debate/AAPL`
+- `POST /api/v1/verdict/AAPL`
 
 The market evidence and debate endpoints require a bearer token from the login or register response.
 
@@ -126,6 +128,21 @@ Module 4 runs three analyst roles in parallel against the same evidence package:
 - Model C: macro and sentiment strategist
 
 Outputs are returned as structured JSON. The current implementation uses deterministic mock analysts so the rest of the product can be built before real LLM provider credentials are added.
+
+## Verdict Engine
+
+Module 5 runs a judge pass after the three analyst models complete. The judge evaluates only the model outputs and does not introduce new evidence.
+
+The verdict response includes:
+
+- winning model
+- final bullish, bearish, or neutral verdict
+- confidence band
+- reason the winner won
+- minority view
+- time horizon
+- action suggestion
+- educational-use disclaimer
 
 ## Rate Limiting
 

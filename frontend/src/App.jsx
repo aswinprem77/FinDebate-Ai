@@ -1,7 +1,7 @@
 import { Activity, BarChart3, KeyRound, LogIn, ShieldCheck, UserPlus } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { fetchEvidencePackage, loginUser, registerUser, runDebate } from "./api/client";
+import { fetchEvidencePackage, loginUser, registerUser, runDebate, runVerdict } from "./api/client";
 
 const tiers = [
   { id: "newbie", label: "Newbie", detail: "Plain-language verdicts" },
@@ -176,9 +176,11 @@ function ProfilePanel({ session, onSignOut }) {
   const [ticker, setTicker] = useState("AAPL");
   const [evidence, setEvidence] = useState(null);
   const [debate, setDebate] = useState(null);
+  const [verdict, setVerdict] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDebating, setIsDebating] = useState(false);
+  const [isJudging, setIsJudging] = useState(false);
 
   async function handleFetchEvidence(event) {
     event.preventDefault();
@@ -203,10 +205,27 @@ function ProfilePanel({ session, onSignOut }) {
       const data = await runDebate(ticker, session.access_token);
       setDebate(data);
       setEvidence(data.evidence_package);
+      setVerdict(null);
     } catch (requestError) {
       setError(requestError.message);
     } finally {
       setIsDebating(false);
+    }
+  }
+
+  async function handleRunVerdict() {
+    setError("");
+    setIsJudging(true);
+
+    try {
+      const data = await runVerdict(ticker, session.access_token);
+      setVerdict(data);
+      setDebate(data.debate);
+      setEvidence(data.debate.evidence_package);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setIsJudging(false);
     }
   }
 
@@ -263,12 +282,19 @@ function ProfilePanel({ session, onSignOut }) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-medium text-slate-300">Three-model debate</p>
-            <p className="text-sm text-slate-500">Mock analysts for M4</p>
+            <p className="text-sm text-slate-500">Mock analysts and judge</p>
           </div>
-          <button className="mini-button" disabled={isDebating} type="button" onClick={handleRunDebate}>
-            {isDebating ? "..." : "Run"}
-          </button>
+          <div className="flex gap-2">
+            <button className="mini-button" disabled={isDebating || isJudging} type="button" onClick={handleRunDebate}>
+              {isDebating ? "..." : "Debate"}
+            </button>
+            <button className="mini-button" disabled={isDebating || isJudging} type="button" onClick={handleRunVerdict}>
+              {isJudging ? "..." : "Judge"}
+            </button>
+          </div>
         </div>
+
+        {verdict && <JudgeVerdictCard verdict={verdict.judge_verdict} />}
 
         {debate && (
           <div className="grid gap-3 pt-2">
@@ -282,6 +308,29 @@ function ProfilePanel({ session, onSignOut }) {
       <button className="secondary-button" type="button" onClick={onSignOut}>
         Sign Out
       </button>
+    </div>
+  );
+}
+
+function JudgeVerdictCard({ verdict }) {
+  return (
+    <div className="rounded border border-cyan/50 bg-cyan/10 px-3 py-3 text-sm">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="font-semibold text-white">Judge verdict</p>
+          <p className="text-slate-400">Winner: {verdict.winning_model}</p>
+        </div>
+        <span className="rounded bg-mint px-2 py-1 text-xs font-semibold text-ink">
+          {verdict.verdict}
+        </span>
+      </div>
+      <p className="mt-3 leading-6 text-slate-200">{verdict.why_winner_won}</p>
+      <div className="mt-3 grid gap-2 text-xs text-slate-400">
+        <p>Confidence: {verdict.confidence_band}</p>
+        <p>Horizon: {verdict.time_horizon}</p>
+        <p>Action: {verdict.action_suggestion}</p>
+        <p>{verdict.disclaimer}</p>
+      </div>
     </div>
   );
 }

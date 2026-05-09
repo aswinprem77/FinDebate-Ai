@@ -6,7 +6,7 @@ class FeatureFlags(BaseModel):
     market_data_enabled: bool = True
     rate_limiter_enabled: bool = True
     debate_engine_enabled: bool = True
-    judge_enabled: bool = False
+    judge_enabled: bool = True
     tier_renderer_enabled: bool = False
 
 

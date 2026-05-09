@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, debate, health, market
+from app.api.routes import auth, debate, health, market, verdict
 from app.core.config import settings
 from app.services.user_store import user_store
 
@@ -25,6 +25,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, prefix=settings.api_v1_prefix)
     app.include_router(market.router, prefix=settings.api_v1_prefix)
     app.include_router(debate.router, prefix=settings.api_v1_prefix)
+    app.include_router(verdict.router, prefix=settings.api_v1_prefix)
 
     @app.on_event("startup")
     def startup() -> None:

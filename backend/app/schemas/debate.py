@@ -9,6 +9,9 @@ ModelRole = Literal["fundamental", "technical", "macro_sentiment"]
 ModelLabel = Literal["A", "B", "C"]
 Verdict = Literal["Bullish", "Bearish", "Neutral"]
 Confidence = Literal["High", "Medium", "Low"]
+ConfidenceBand = Literal["Strong", "Moderate", "Weak"]
+TimeHorizon = Literal["1 week", "1 month", "3 months"]
+ActionSuggestion = Literal["Buy", "Hold", "Watch", "Avoid"]
 
 
 class AnalystOutput(BaseModel):
@@ -41,3 +44,30 @@ class DebateResponse(BaseModel):
     model_a_output: AnalystOutput
     model_b_output: AnalystOutput
     model_c_output: AnalystOutput
+
+
+class JudgeVerdict(BaseModel):
+    provider_model: str
+    winning_model: Literal["A", "B", "C", "tie"]
+    verdict: Verdict
+    confidence_band: ConfidenceBand
+    why_winner_won: str
+    minority_view: str
+    time_horizon: TimeHorizon
+    action_suggestion: ActionSuggestion
+    disclaimer: str
+    is_fallback: bool = False
+    error: str | None = None
+
+
+class VerdictMetadata(BaseModel):
+    ticker: str
+    generated_at: datetime
+    judge_timeout_seconds: int
+    partial: bool
+
+
+class VerdictResponse(BaseModel):
+    metadata: VerdictMetadata
+    debate: DebateResponse
+    judge_verdict: JudgeVerdict

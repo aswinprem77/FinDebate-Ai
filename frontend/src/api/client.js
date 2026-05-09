@@ -33,6 +33,13 @@ export async function runDebate(ticker, token) {
   });
 }
 
+export async function runVerdict(ticker, token) {
+  return request(`/verdict/${ticker}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
