@@ -40,6 +40,13 @@ export async function runVerdict(ticker, token) {
   });
 }
 
+export async function runTierResult(ticker, token) {
+  return request(`/results/${ticker}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,

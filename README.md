@@ -11,8 +11,9 @@ Implemented modules:
 - Module 3: Rate limiter
 - Module 4: Three-model debate engine using mocked analyst models
 - Module 5: Judge model and final verdict engine
+- Module 6: Tier-specific output renderer
 
-The market data, debate, and judge flows currently use mock data for `AAPL`. Live market API and LLM provider integrations are planned for later modules.
+The market data, debate, judge, and tier rendering flows currently use mock data for `AAPL`. Live market API and LLM provider integrations are planned for later modules.
 
 ## Tech Stack
 
@@ -116,6 +117,7 @@ Debate:
 
 - `POST /api/v1/debate/AAPL`
 - `POST /api/v1/verdict/AAPL`
+- `POST /api/v1/results/AAPL`
 
 The market evidence and debate endpoints require a bearer token from the login or register response.
 
@@ -143,6 +145,16 @@ The verdict response includes:
 - time horizon
 - action suggestion
 - educational-use disclaimer
+
+## Tier Renderer
+
+Module 6 renders the same underlying verdict differently by user tier. The debate and judge output are generated once, then filtered for display.
+
+Current output tiers:
+
+- Newbie: action, one plain sentence, latest headline, disclaimer
+- Intermediate: verdict, confidence, time horizon, key indicators, model summaries
+- Pro and admin: full verdict response and evidence package
 
 ## Rate Limiting
 

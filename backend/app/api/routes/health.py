@@ -12,7 +12,7 @@ router = APIRouter(tags=["health"])
 async def health_check():
     return {
         "status": "ok",
-        "module": "M5_JUDGE_VERDICT_ENGINE",
+        "module": "M6_TIER_RENDERER",
         "user_store": user_store.backend_name,
         "evidence_cache": evidence_cache.backend_name,
         "rate_limiter": rate_limiter.backend_name,

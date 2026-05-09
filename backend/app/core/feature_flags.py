@@ -7,7 +7,7 @@ class FeatureFlags(BaseModel):
     rate_limiter_enabled: bool = True
     debate_engine_enabled: bool = True
     judge_enabled: bool = True
-    tier_renderer_enabled: bool = False
+    tier_renderer_enabled: bool = True
 
 
 feature_flags = FeatureFlags()

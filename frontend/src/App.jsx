@@ -1,7 +1,14 @@
 import { Activity, BarChart3, KeyRound, LogIn, ShieldCheck, UserPlus } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { fetchEvidencePackage, loginUser, registerUser, runDebate, runVerdict } from "./api/client";
+import {
+  fetchEvidencePackage,
+  loginUser,
+  registerUser,
+  runDebate,
+  runTierResult,
+  runVerdict,
+} from "./api/client";
 
 const tiers = [
   { id: "newbie", label: "Newbie", detail: "Plain-language verdicts" },
@@ -177,10 +184,12 @@ function ProfilePanel({ session, onSignOut }) {
   const [evidence, setEvidence] = useState(null);
   const [debate, setDebate] = useState(null);
   const [verdict, setVerdict] = useState(null);
+  const [tierResult, setTierResult] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDebating, setIsDebating] = useState(false);
   const [isJudging, setIsJudging] = useState(false);
+  const [isRendering, setIsRendering] = useState(false);
 
   async function handleFetchEvidence(event) {
     event.preventDefault();
@@ -206,6 +215,7 @@ function ProfilePanel({ session, onSignOut }) {
       setDebate(data);
       setEvidence(data.evidence_package);
       setVerdict(null);
+      setTierResult(null);
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -222,10 +232,25 @@ function ProfilePanel({ session, onSignOut }) {
       setVerdict(data);
       setDebate(data.debate);
       setEvidence(data.debate.evidence_package);
+      setTierResult(null);
     } catch (requestError) {
       setError(requestError.message);
     } finally {
       setIsJudging(false);
+    }
+  }
+
+  async function handleRunTierResult() {
+    setError("");
+    setIsRendering(true);
+
+    try {
+      const data = await runTierResult(ticker, session.access_token);
+      setTierResult(data);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setIsRendering(false);
     }
   }
 
@@ -291,8 +316,18 @@ function ProfilePanel({ session, onSignOut }) {
             <button className="mini-button" disabled={isDebating || isJudging} type="button" onClick={handleRunVerdict}>
               {isJudging ? "..." : "Judge"}
             </button>
+            <button
+              className="mini-button"
+              disabled={isDebating || isJudging || isRendering}
+              type="button"
+              onClick={handleRunTierResult}
+            >
+              {isRendering ? "..." : "Result"}
+            </button>
           </div>
         </div>
+
+        {tierResult && <TierResultCard result={tierResult} />}
 
         {verdict && <JudgeVerdictCard verdict={verdict.judge_verdict} />}
 
@@ -310,6 +345,63 @@ function ProfilePanel({ session, onSignOut }) {
       </button>
     </div>
   );
+}
+
+function TierResultCard({ result }) {
+  if (result.newbie) {
+    return (
+      <div className="rounded border border-mint/50 bg-mint/10 px-3 py-3 text-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-mint">Tier result</p>
+        <p className="mt-2 text-lg font-semibold text-white">{result.newbie.action}</p>
+        <p className="mt-2 leading-6 text-slate-200">{result.newbie.sentence}</p>
+        {result.newbie.latest_headline && (
+          <p className="mt-2 text-xs text-slate-400">{result.newbie.latest_headline}</p>
+        )}
+        <p className="mt-2 text-xs text-slate-500">{result.newbie.disclaimer}</p>
+      </div>
+    );
+  }
+
+  if (result.intermediate) {
+    return (
+      <div className="rounded border border-mint/50 bg-mint/10 px-3 py-3 text-sm">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold text-white">{result.intermediate.verdict}</p>
+            <p className="text-slate-400">{result.intermediate.confidence_band} confidence</p>
+          </div>
+          <span className="rounded bg-mint px-2 py-1 text-xs font-semibold text-ink">
+            {result.intermediate.action}
+          </span>
+        </div>
+        <p className="mt-3 leading-6 text-slate-200">{result.intermediate.why}</p>
+        <div className="mt-3 grid gap-2 text-xs text-slate-400">
+          <p>Horizon: {result.intermediate.time_horizon}</p>
+          <p>Price: ${result.intermediate.indicators.price}</p>
+          <p>RSI: {result.intermediate.indicators.rsi ?? "Missing"}</p>
+          <p>P/E: {result.intermediate.indicators.pe_ratio ?? "Missing"}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (result.pro) {
+    const judge = result.pro.verdict_response.judge_verdict;
+    return (
+      <div className="rounded border border-mint/50 bg-mint/10 px-3 py-3 text-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-mint">Pro result</p>
+        <p className="mt-2 font-semibold text-white">
+          {judge.verdict} by Model {judge.winning_model}
+        </p>
+        <p className="mt-2 leading-6 text-slate-200">{judge.why_winner_won}</p>
+        <p className="mt-2 text-xs text-slate-400">
+          Full raw verdict and evidence package returned by API.
+        </p>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 function JudgeVerdictCard({ verdict }) {
