@@ -1,7 +1,7 @@
 import { Activity, BarChart3, KeyRound, LogIn, ShieldCheck, UserPlus } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { fetchEvidencePackage, loginUser, registerUser } from "./api/client";
+import { fetchEvidencePackage, loginUser, registerUser, runDebate } from "./api/client";
 
 const tiers = [
   { id: "newbie", label: "Newbie", detail: "Plain-language verdicts" },
@@ -175,8 +175,10 @@ function SignalCard({ icon: Icon, label, value }) {
 function ProfilePanel({ session, onSignOut }) {
   const [ticker, setTicker] = useState("AAPL");
   const [evidence, setEvidence] = useState(null);
+  const [debate, setDebate] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isDebating, setIsDebating] = useState(false);
 
   async function handleFetchEvidence(event) {
     event.preventDefault();
@@ -190,6 +192,21 @@ function ProfilePanel({ session, onSignOut }) {
       setError(requestError.message);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleRunDebate() {
+    setError("");
+    setIsDebating(true);
+
+    try {
+      const data = await runDebate(ticker, session.access_token);
+      setDebate(data);
+      setEvidence(data.evidence_package);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setIsDebating(false);
     }
   }
 
@@ -242,9 +259,47 @@ function ProfilePanel({ session, onSignOut }) {
         )}
       </form>
 
+      <section className="space-y-3 rounded-lg border border-line bg-ink p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-slate-300">Three-model debate</p>
+            <p className="text-sm text-slate-500">Mock analysts for M4</p>
+          </div>
+          <button className="mini-button" disabled={isDebating} type="button" onClick={handleRunDebate}>
+            {isDebating ? "..." : "Run"}
+          </button>
+        </div>
+
+        {debate && (
+          <div className="grid gap-3 pt-2">
+            <DebateModelCard label="Model A" output={debate.model_a_output} />
+            <DebateModelCard label="Model B" output={debate.model_b_output} />
+            <DebateModelCard label="Model C" output={debate.model_c_output} />
+          </div>
+        )}
+      </section>
+
       <button className="secondary-button" type="button" onClick={onSignOut}>
         Sign Out
       </button>
+    </div>
+  );
+}
+
+function DebateModelCard({ label, output }) {
+  return (
+    <div className="rounded border border-line px-3 py-3 text-sm">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="font-semibold text-white">{label}</p>
+          <p className="text-slate-500">{output.role.replace("_", " ")}</p>
+        </div>
+        <span className="rounded bg-cyan px-2 py-1 text-xs font-semibold text-ink">
+          {output.verdict}
+        </span>
+      </div>
+      <p className="mt-3 leading-6 text-slate-300">{output.plain_english_summary}</p>
+      <p className="mt-2 text-xs text-slate-500">Confidence: {output.confidence}</p>
     </div>
   );
 }

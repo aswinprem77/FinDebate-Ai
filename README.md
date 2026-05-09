@@ -9,8 +9,9 @@ Implemented modules:
 - Module 1: Project setup and authentication
 - Module 2: Market evidence package and cache skeleton
 - Module 3: Rate limiter
+- Module 4: Three-model debate engine using mocked analyst models
 
-The market data flow currently uses mock data for `AAPL`. Live market API integrations are planned for later modules.
+The market data and debate flows currently use mock data for `AAPL`. Live market API and LLM provider integrations are planned for later modules.
 
 ## Tech Stack
 
@@ -31,6 +32,7 @@ backend/
     models/       Domain models
     schemas/      API request and response schemas
     services/     Application services
+    prompts/      Debate role prompt templates
 frontend/
   src/
     api/          Frontend API client
@@ -109,11 +111,25 @@ Market evidence:
 
 - `GET /api/v1/market/evidence/AAPL`
 
-The market evidence endpoint requires a bearer token from the login or register response.
+Debate:
+
+- `POST /api/v1/debate/AAPL`
+
+The market evidence and debate endpoints require a bearer token from the login or register response.
+
+## Debate Engine
+
+Module 4 runs three analyst roles in parallel against the same evidence package:
+
+- Model A: fundamental analyst
+- Model B: technical analyst
+- Model C: macro and sentiment strategist
+
+Outputs are returned as structured JSON. The current implementation uses deterministic mock analysts so the rest of the product can be built before real LLM provider credentials are added.
 
 ## Rate Limiting
 
-Module 3 applies debate-style quotas to the protected market evidence endpoint. This keeps the limiter in the request path before the LLM debate engine is implemented.
+Module 3 applies debate-style quotas to protected evidence and debate endpoints.
 
 Current quotas:
 

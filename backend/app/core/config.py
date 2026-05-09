@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     free_debates_per_day: int = 20
     pro_debates_per_hour: int = 30
     pro_warning_threshold_per_hour: int = 25
+    model_timeout_seconds: int = 25
     cors_origins_raw: str = Field(
         default="http://localhost:5173,http://127.0.0.1:5173",
         validation_alias="CORS_ORIGINS",

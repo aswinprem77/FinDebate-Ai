@@ -26,6 +26,13 @@ export async function fetchEvidencePackage(ticker, token) {
   });
 }
 
+export async function runDebate(ticker, token) {
+  return request(`/debate/${ticker}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
